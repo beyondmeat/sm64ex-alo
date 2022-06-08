@@ -1612,12 +1612,12 @@ $(BUILD_DIR)/%.o: %.s
 	$(V)$(CPP) $(CPPFLAGS) $< | $(AS) $(ASFLAGS) -MD $(BUILD_DIR)/$*.d -o $@
 	
 ifeq ($(OSX_BUILD),1)
- # llvm-as doesn't accept the (unneccesary) MD parameter
- # (native assembler required for 'sound_data.s')
- $(BUILD_DIR)/sound/sound_data.o: sound/sound_data.s
- 	$(call print,Assembling:,$<,$@)
- 	$(V)$(CPP) $(CPPFLAGS) $< | $(AS_NATIVE) $(ASFLAGS) -o $@
- endif
+# llvm-as doesn't accept the (unneccesary) MD parameter
+# (native assembler required for 'sound_data.s')
+$(BUILD_DIR)/sound/sound_data.o: sound/sound_data.s
+	$(call print,Assembling:,$<,$@)
+	$(V)$(CPP) $(CPPFLAGS) $< | $(AS_NATIVE) $(ASFLAGS) -o $@
+endif
 
 ifeq ($(WINDOWS_BUILD),1)
 # Windows Icon
