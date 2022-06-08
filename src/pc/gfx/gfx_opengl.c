@@ -12,7 +12,7 @@
 # define USES_WINDOWS
 #endif
 
-#if defined(USES_WINDOWS) || defined(OSX_BUILD)
+#if defined(USES_WINDOWS)
 # define GLEW_STATIC
 # include <GL/glew.h>
 #endif
