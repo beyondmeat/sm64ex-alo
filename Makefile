@@ -137,23 +137,23 @@ endif
 # macOS overrides
 ifeq ($(HOST_OS),Darwin)
   OSX_BUILD := 1
-  # Using MacPorts?
-  ifeq ($(shell test -d /opt/local/lib && echo y),y)
-    OSX_GCC_VER = $(shell find /opt/local/bin/gcc* | grep -oE '[[:digit:]]+' | sort -n | uniq | tail -1)
-    CC := gcc-mp-$(OSX_GCC_VER)
-    CXX := g++-mp-$(OSX_GCC_VER)
-    CPP := cpp-mp-$(OSX_GCC_VER) -P
-    PLATFORM_CFLAGS := -I /opt/local/include
-    PLATFORM_LDFLAGS := -L /opt/local/lib
+  # Using Homebrew?
+  ifeq ($(shell which brew >/dev/null 2>&1 && echo y),y)
+    OSX_GCC_VER = $(shell find `brew --prefix`/bin/gcc* | grep -oE '[[:digit:]]+' | sort -n | uniq | tail -1)
+    CC := gcc-$(OSX_GCC_VER)
+    CXX := g++-$(OSX_GCC_VER)
+    CPP := cpp-$(OSX_GCC_VER) -P
+    PLATFORM_CFLAGS := -I $(shell brew --prefix)/include
+    PLATFORM_LDFLAGS := -L $(shell brew --prefix)/lib
   else
-    # Using Homebrew?
-    ifeq ($(shell which brew >/dev/null 2>&1 && echo y),y)
-      OSX_GCC_VER = $(shell find `brew --prefix`/bin/gcc* | grep -oE '[[:digit:]]+' | sort -n | uniq | tail -1)
-      CC := gcc-$(OSX_GCC_VER)
-      CXX := g++-$(OSX_GCC_VER)
-      CPP := cpp-$(OSX_GCC_VER) -P
-      PLATFORM_CFLAGS := -I /usr/local/include
-      PLATFORM_LDFLAGS := -L /usr/local/lib
+    # Using MacPorts?
+    ifeq ($(shell test -d /opt/local/lib && echo y),y)
+      OSX_GCC_VER = $(shell find /opt/local/bin/gcc* | grep -oE '[[:digit:]]+' | sort -n | uniq | tail -1)
+      CC := gcc-mp-$(OSX_GCC_VER)
+      CXX := g++-mp-$(OSX_GCC_VER)
+      CPP := cpp-mp-$(OSX_GCC_VER) -P
+      PLATFORM_CFLAGS := -I /opt/local/include
+      PLATFORM_LDFLAGS := -L /opt/local/lib
     else
       $(error No suitable macOS toolchain found, have you installed Homebrew?)
     endif
@@ -900,7 +900,11 @@ SDLCROSS ?= $(CROSS)
 AS := $(CROSS)as
 
 ifeq ($(OSX_BUILD),1)
+# cross assembler required for '00_sound_player.s'
 AS := i686-w64-mingw32-as
+# native assembler required for 'sound_data.s'
+# (GNU as is not available in any OSX port of binutils, use LLVM as instead)
+AS_NATIVE := as
 endif
 
 ifneq ($(TARGET_WEB),1) # As in, not-web PC port
@@ -1021,6 +1025,7 @@ ifneq ($(SDL1_USED)$(SDL2_USED),00)
     # on OSX at least the homebrew version of sdl-config gives include path as `.../include/SDL2` instead of `.../include`
     OSX_PREFIX := $(shell $(SDLCONFIG) --prefix)
     BACKEND_CFLAGS += -I$(OSX_PREFIX)/include $(shell $(SDLCONFIG) --cflags)
+    BACKEND_LDFLAGS += $(shell $(SDLCONFIG) --libs)
   else
     BACKEND_CFLAGS += $(shell $(SDLCONFIG) --cflags)
     ifeq ($(WINDOWS_BUILD),1)
@@ -1083,6 +1088,11 @@ ifeq ($(EXTERNAL_DATA),1)
   # tell skyconv to write names instead of actual texture data and save the split tiles so we can use them later
   SKYTILE_DIR := $(BUILD_DIR)/textures/skybox_tiles
   SKYCONV_ARGS := --store-names --write-tiles "$(SKYTILE_DIR)"
+endif
+
+ifeq ($(OSX_BUILD),1)
+#llvm-as doesn't conform to GNU as parameterization, strip problematic (and superfluous afa the assembler is concerned) DEFINES
+   DEFINES :=
 endif
 
 ASFLAGS := $(foreach i,$(INCLUDE_DIRS),-I$(i)) $(foreach d,$(DEFINES),--defsym $(d))
@@ -1600,6 +1610,14 @@ $(BUILD_DIR)/%.o: $(BUILD_DIR)/%.c
 $(BUILD_DIR)/%.o: %.s
 	$(call print,Assembling:,$<,$@)
 	$(V)$(CPP) $(CPPFLAGS) $< | $(AS) $(ASFLAGS) -MD $(BUILD_DIR)/$*.d -o $@
+	
+ifeq ($(OSX_BUILD),1)
+ # llvm-as doesn't accept the (unneccesary) MD parameter
+ # (native assembler required for 'sound_data.s')
+ $(BUILD_DIR)/sound/sound_data.o: sound/sound_data.s
+ 	$(call print,Assembling:,$<,$@)
+ 	$(V)$(CPP) $(CPPFLAGS) $< | $(AS_NATIVE) $(ASFLAGS) -o $@
+ endif
 
 ifeq ($(WINDOWS_BUILD),1)
 # Windows Icon
