@@ -1,6 +1,17 @@
 #ifndef MACROS_H
 #define MACROS_H
 
+#if defined(__APPLE__)
+ .macro .section label
+     \label
+ .endm
+ #endif
+ #if defined(__APPLE__) || (defined(__MINGW32__) && !defined(__MINGW64__))
+ #    define cdecl(s) _##s
+ #else
+ #    define cdecl(s) s
+ #endif
+
 #include "platform_info.h"
 
 #ifndef __sgi
