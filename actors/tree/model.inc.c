@@ -157,9 +157,9 @@ static const Vtx tree_seg3_vertex_snowy_pine[] = {
     {{{   128,      0,      0}, 0, {   990,   2012}, {0x00, 0x00, 0x7f, 0xff}}},
 };
 
-#if !OBJ_OPACITY_BY_CAM_DIST
-#define tree_seg3_sub_dl_snowy_pine tree_seg3_dl_snowy_pine
-#endif
+//#if !OBJ_OPACITY_BY_CAM_DIST
+//#define tree_seg3_sub_dl_snowy_pine tree_seg3_dl_snowy_pine
+//#endif
 // 0x03032088 - 0x03032130
 const Gfx tree_seg3_sub_dl_snowy_pine[] = {
 #if !OBJ_OPACITY_BY_CAM_DIST
