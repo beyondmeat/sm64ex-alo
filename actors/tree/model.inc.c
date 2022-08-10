@@ -186,13 +186,11 @@ const Gfx tree_seg3_sub_dl_snowy_pine[] = {
     gsSPEndDisplayList(),
 };
 
-#ifndef __APPLE__
-    const Gfx tree_seg3_dl_snowy_pine[] = {
-        gsDPPipeSync(),
-        gsDPSetCombineMode(G_CC_DECALRGBA, G_CC_DECALRGBA),
-        gsSPBranchList(tree_seg3_sub_dl_snowy_pine),
-    };
-#endif
+const Gfx tree_seg3_dl_snowy_pine[] = {
+    gsDPPipeSync(),
+    gsDPSetCombineMode(G_CC_DECALRGBA, G_CC_DECALRGBA),
+    gsSPBranchList(tree_seg3_sub_dl_snowy_pine),
+};
 
 const Gfx tree_seg3_dl_snowy_pine_transparent[] = {
     gsDPPipeSync(),
